@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}
+Compare Models
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <h2 class="mb-3">Compare Model Results</h2>
+                <p class="text-white-50">Upload an image to execute predictions using both MobileNetV2 and ResNet50 side-by-side, comparing their accuracy and speed.</p>
+                <form method="POST" enctype="multipart/form-data" id="compareForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
+                    </div>
+                    <button type="submit" id="compareBtn" class="btn btn-primary">Run Comparison</button>
+                </form>
+            </div>
+        </div>
+
+        {% if resnet_prediction and mobilenet_prediction %}
+        <div class="row g-4 mb-4">
+            <!-- ResNet50 Column (High Accuracy) -->
+            <div class="col-md-6">
+                <div class="card shadow h-100 border border-primary">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 text-white">ResNet50 (Default)</h4>
+                        <span class="badge bg-light text-primary">High Accuracy</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="va-glass-card p-3 rounded mb-3" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12);">
+                            <h5 class="text-white-50 mb-1">Top Prediction</h5>
+                            <h3 class="text-success mb-2">{{ resnet_prediction.label.replace('_', ' ').title() }}</h3>
+                            <div class="mb-1 text-white">Confidence: <strong>{{ resnet_prediction.confidence }}%</strong></div>
+                            <div class="text-white">Inference Speed: <strong class="text-warning">{{ resnet_duration }} ms</strong></div>
+                        </div>
+
+                        <h5 class="mb-3 text-white">Top predictions breakdown:</h5>
+                        <ul class="list-group list-group-flush">
+                            {% for item in resnet_predictions %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center text-white" style="background: transparent;">
+                                <span>{{ item.label.replace('_', ' ').title() }}</span>
+                                <span class="badge bg-secondary">{{ item.confidence }}%</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MobileNetV2 Column (Fast/Mobile Optimized) -->
+            <div class="col-md-6">
+                <div class="card shadow h-100 border border-info">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 text-white">MobileNetV2</h4>
+                        <span class="badge bg-light text-info">Fast / Mobile</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="va-glass-card p-3 rounded mb-3" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12);">
+                            <h5 class="text-white-50 mb-1">Top Prediction</h5>
+                            <h3 class="text-success mb-2">{{ mobilenet_prediction.label.replace('_', ' ').title() }}</h3>
+                            <div class="mb-1 text-white">Confidence: <strong>{{ mobilenet_prediction.confidence }}%</strong></div>
+                            <div class="text-white">Inference Speed: <strong class="text-warning">{{ mobilenet_duration }} ms</strong></div>
+                        </div>
+
+                        <h5 class="mb-3 text-white">Top predictions breakdown:</h5>
+                        <ul class="list-group list-group-flush">
+                            {% for item in mobilenet_predictions %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center text-white" style="background: transparent;">
+                                <span>{{ item.label.replace('_', ' ').title() }}</span>
+                                <span class="badge bg-secondary">{{ item.confidence }}%</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if image_filename %}
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white text-center">
+                <h5 class="mb-0 text-white">Tested Image</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ url_for('static', filename='uploads/' + image_filename) }}" class="img-fluid rounded shadow" style="max-height: 400px;">
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const compareForm = document.getElementById('compareForm');
+if (compareForm) {
+    compareForm.addEventListener('submit', function() {
+        showLoading('compareBtn');
+    });
+}
+</script>
+{% endblock %}

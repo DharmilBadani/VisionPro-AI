@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}
+Reports
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Generated Reports
+</h2>
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        <table class="table table-bordered">
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+                    <th>Report</th>
+                    <th>Date</th>
+                    <th>View</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for report in reports %}
+
+                <tr>
+
+                    <td>
+                        {{ report.id }}
+                    </td>
+
+
+                    <td>
+                        {{ report.report_name }}
+
+                    </td>
+
+                    <td>
+                        {{ report.created_at|datetime }}
+                    </td>
+
+
+
+
+                    <td>
+
+                        <div class="mb-2 d-flex gap-2 flex-wrap">
+                            <button
+                                type="button"
+                                class="btn btn-outline-light btn-sm"
+                                onclick="openReportModal({{ report.id }})"
+                                aria-label="View report {{ report.id }}"
+                            >
+                                View
+                            </button>
+
+
+                            <a
+                                href="{{ url_for('report.download_report', report_id=report.id) }}"
+                                class="btn btn-primary btn-sm"
+                            >
+                                Download
+                            </a>
+                        </div>
+
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content" style="background: rgba(7,10,18,.8); border:1px solid rgba(255,255,255,.12); color: #EAF2FF;">
+            <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,.12);">
+                <h5 class="modal-title" id="reportModalLabel">Report Preview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <iframe id="reportModalFrame"
+                        src="about:blank"
+                        style="width:100%; height:75vh; border:1px solid rgba(255,255,255,0.12); border-radius: 8px; background: rgba(255,255,255,0.04);">
+                </iframe>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,.12);">
+                <a id="reportModalDownload" class="btn btn-primary" href="#">Download</a>
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openReportModal(reportId) {
+        const iframe = document.getElementById('reportModalFrame');
+        const downloadLink = document.getElementById('reportModalDownload');
+        if (!iframe || !downloadLink) return;
+
+        // Preview must NOT trigger download.
+        iframe.src = `/preview-report/${reportId}`;
+
+        // Only downloads when user explicitly clicks Download.
+        downloadLink.href = `/download-report/${reportId}`;
+
+        const modalEl = document.getElementById('reportModal');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+</script>
+
+
+{% endblock %}

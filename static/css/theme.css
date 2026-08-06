@@ -1,0 +1,65 @@
+:root {
+  color-scheme: dark;
+  --va-bg: #070a12;
+  --va-fg: #eaf2ff;
+  --va-muted: rgba(234, 242, 255, 0.72);
+  --va-surface: rgba(255, 255, 255, 0.06);
+  --va-border: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-theme='dark'] {
+  --va-bg: #070a12;
+  --va-fg: #eaf2ff;
+}
+
+body {
+  background-color: var(--va-bg);
+  color: var(--va-fg);
+}
+
+.footer-section {
+  color: var(--va-fg);
+}
+
+body,
+.card,
+.table {
+  color: var(--va-fg);
+}
+
+.text-white-50,
+.text-light,
+.text-muted,
+.text-secondary {
+  color: var(--va-muted) !important;
+}
+
+.card,
+.card-header,
+.table,
+.form-control,
+.form-select,
+.alert,
+.modal-content,
+.list-group-item,
+.dropdown-menu {
+  background-color: var(--va-surface) !important;
+  border-color: var(--va-border) !important;
+}
+
+.form-control,
+.form-select,
+.form-control::placeholder {
+  color: var(--va-fg) !important;
+}
+
+.btn-outline-light {
+  color: var(--va-fg) !important;
+  border-color: var(--va-border) !important;
+}
+
+.btn-outline-light:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}
+Analytics Dashboard - VisionAI Pro
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4 text-white animate-slide-up">
+    Analytics Dashboard
+</h2>
+
+<div class="row g-4 mb-4 animate-slide-up" style="animation-delay: 0.1s;">
+    <!-- Stats: Total Predictions -->
+    <div class="col-md-3">
+        <div class="card h-100 shadow">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; background: rgba(124, 58, 237, 0.15); border: 1px solid rgba(124, 58, 237, 0.3);">
+                    <span class="fs-4">📊</span>
+                </div>
+                <div>
+                    <h6 class="text-white-50 mb-1 small font-monospace">Predictions</h6>
+                    <h3 class="mb-0 text-white fw-bold">{{ stats.total_predictions }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats: OCR Records -->
+    <div class="col-md-3">
+        <div class="card h-100 shadow">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3);">
+                    <span class="fs-4">📝</span>
+                </div>
+                <div>
+                    <h6 class="text-white-50 mb-1 small font-monospace">OCR Records</h6>
+                    <h3 class="mb-0 text-white fw-bold">{{ stats.total_ocr }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats: Detections -->
+    <div class="col-md-3">
+        <div class="card h-100 shadow">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3);">
+                    <span class="fs-4">🔍</span>
+                </div>
+                <div>
+                    <h6 class="text-white-50 mb-1 small font-monospace">Detections</h6>
+                    <h3 class="mb-0 text-white fw-bold">{{ stats.total_detections }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats: Reports -->
+    <div class="col-md-3">
+        <div class="card h-100 shadow">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 50px; height: 50px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3);">
+                    <span class="fs-4">📄</span>
+                </div>
+                <div>
+                    <h6 class="text-white-50 mb-1 small font-monospace">Reports</h6>
+                    <h3 class="mb-0 text-white fw-bold">{{ stats.total_reports }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Card -->
+<div class="card shadow animate-slide-up" style="animation-delay: 0.2s;">
+    <div class="card-body">
+        <h4 class="mb-4 text-white">
+            Prediction Analytics
+        </h4>
+        <div class="chart-container">
+            <canvas id="predictionChart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const labels = {{ chart_data["labels"]|tojson }};
+const values = {{ chart_data["values"]|tojson }};
+
+const ctx = document.getElementById("predictionChart");
+
+if (ctx) {
+    // Create modern linear gradient for Chart bars
+    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 360);
+    gradient.addColorStop(0, 'rgba(124, 58, 237, 0.85)'); // Purple glow
+    gradient.addColorStop(1, 'rgba(34, 197, 94, 0.15)');   // Green tail
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels.map(l => l.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())),
+            datasets: [{
+                label: "Identified Categories",
+                data: values,
+                backgroundColor: gradient,
+                borderColor: '#7C3AED',
+                borderWidth: 1.5,
+                borderRadius: 8,
+                hoverBackgroundColor: 'rgba(124, 58, 237, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'rgba(234, 242, 255, 0.7)',
+                        font: { family: 'Inter' }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    ticks: {
+                        color: 'rgba(234, 242, 255, 0.6)',
+                        font: { family: 'Inter' }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: 'rgba(234, 242, 255, 0.6)',
+                        font: { family: 'Inter' }
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+
+{% endblock %}

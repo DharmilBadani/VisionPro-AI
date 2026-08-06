@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}
+Activity Feed
+{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-body">
+        <h2 class="mb-3">Recent Activity</h2>
+        <ul class="list-group">
+            {% for entry in activities %}
+            <li class="list-group-item">
+                <strong>{{ entry.action }}</strong>
+                <div class="small text-white-50">{{ entry.details or 'No details' }}</div>
+                <div class="small text-white-50">{{ entry.created_at|datetime }}</div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

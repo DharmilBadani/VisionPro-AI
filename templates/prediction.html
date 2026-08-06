@@ -1,0 +1,631 @@
+{% extends "base.html" %}
+
+{% block title %}
+AI Analysis Workspace - VisionAI Pro
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center animate-slide-up">
+    <div class="col-lg-10">
+        <!-- Main Upload card -->
+        <div class="card shadow mb-4">
+            <div class="card-body p-4 p-lg-5">
+                <h2 class="mb-4 text-center text-white">
+                    AI Image Analysis Workspace
+                </h2>
+
+                <form method="POST" enctype="multipart/form-data" id="analysisForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Modern Cloud Upload Dropzone -->
+                    <div class="mb-4 text-center">
+                        <label class="form-label text-white-50 font-monospace small mb-3">SELECT TARGET IMAGE</label>
+                        <div class="upload-box position-relative" onclick="document.getElementById('imageInput').click()">
+                            <div class="py-3">
+                                <span class="fs-1 mb-2 d-block">☁</span>
+                                <span class="fw-bold text-white d-block mb-1 fs-5">Upload a file</span>
+                                <span class="text-white-50 small">Accepts secure JPG, PNG, WebP, JPEG or PDF</span>
+                            </div>
+                            <input
+                                type="file"
+                                name="image"
+                                id="imageInput"
+                                class="d-none"
+                                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Selected Image/File Preview -->
+                    <div class="text-center mb-4">
+                        <img
+                            id="imagePreview"
+                            class="img-fluid rounded shadow border border-secondary"
+                            style="max-height:400px; display:none; margin: 0 auto;"
+                        >
+                        <div id="pdfPreview" class="va-glass-card p-4 rounded border border-danger d-inline-block" style="display:none; min-width: 250px; cursor: pointer;">
+                            <span class="fs-1 d-block mb-2">📄</span>
+                            <h5 class="text-white mb-2">PDF Document Selected</h5>
+                            <div id="pdfName" class="text-white-50 small font-monospace mb-2">document.pdf</div>
+                            <div class="small text-danger font-monospace">👉 Click to View/Read PDF</div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="analyzeButton"
+                        class="btn btn-primary w-100 py-3 fs-6"
+                    >
+                        Analyze File
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Layout blocks for results -->
+        {% if image_filename %}
+        <div class="card shadow mt-4 animate-slide-up">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">
+                    Uploaded File & Analysis Visualization
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row g-4 text-center">
+                    <div class="col-md-{% if annotated_filename %}6{% else %}12{% endif %}">
+                        <h6 class="text-white-50 mb-2 font-monospace small">ORIGINAL FILE</h6>
+                        {% if image_filename.lower().endswith('.pdf') %}
+                        <div class="va-glass-card p-5 rounded border border-danger d-inline-block" style="min-width: 250px; background: rgba(239, 68, 68, 0.05);">
+                            <span class="fs-1 d-block mb-3">📄</span>
+                            <h5 class="text-white">PDF Document</h5>
+                            <a href="{{ url_for('static', filename='uploads/' + image_filename) }}" class="btn btn-outline-danger btn-sm mt-3" target="_blank">View PDF</a>
+                        </div>
+                        {% else %}
+                        <img
+                            src="{{ url_for('static', filename='uploads/' + image_filename) }}"
+                            class="img-fluid rounded shadow border border-secondary"
+                            style="max-height:450px;"
+                        >
+                        {% endif %}
+                    </div>
+                    {% if annotated_filename %}
+                    <div class="col-md-6">
+                        <h6 class="text-white-50 mb-2 font-monospace small">OBJECT DETECTION OVERLAY</h6>
+                        <img
+                            src="{{ url_for('static', filename='predictions/' + annotated_filename) }}"
+                            class="img-fluid rounded shadow border border-primary"
+                            style="max-height:450px;"
+                        >
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if prediction %}
+        <div class="card shadow mt-4 animate-slide-up">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    Classification Result
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success d-flex align-items-center justify-content-between mb-0">
+                    <div>
+                        <h5 class="mb-1 text-white font-monospace small">BEST MATCH</h5>
+                        <h3 class="mb-0 text-white">{{ prediction.label.replace('_', ' ').title() }}</h3>
+                    </div>
+                    <div class="text-end">
+                        <h5 class="mb-1 text-white font-monospace small">CONFIDENCE</h5>
+                        <h3 class="mb-0 text-white">{{ prediction.confidence }}%</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if generated_caption %}
+        <div class="card shadow mt-4 animate-slide-up">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    AI Visual Caption
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="va-glass-card p-4 rounded text-center" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <p id="captionText" class="mb-4 fs-5 font-monospace text-white" style="line-height: 1.6;">"{{ generated_caption }}"</p>
+                    <button class="btn btn-outline-light px-4" onclick="speakCaption()">
+                        🔊 Read Caption Out Loud
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if predictions %}
+        <div class="card shadow mt-4 animate-slide-up">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    Top Predictions
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in predictions %}
+                            <tr>
+                                <td class="fw-bold text-white">{{ item.label.replace('_', ' ').title() }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-secondary">{{ item.confidence }}%</span>
+                                        <div class="progress flex-grow-1" style="height: 6px; background: rgba(255,255,255,0.08);">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ item.confidence }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if detections %}
+        <div class="card shadow mt-4 animate-slide-up">
+            <div class="card-header bg-warning text-white">
+                <h4 class="mb-0">
+                    Object Detection Results
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>Object</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detection in detections %}
+                            <tr>
+                                <td class="fw-bold text-white">{{ detection.label.replace('_', ' ').title() }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-warning text-dark">{{ detection.confidence }}%</span>
+                                        <div class="progress flex-grow-1" style="height: 6px; background: rgba(255,255,255,0.08);">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ detection.confidence }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if extracted_text %}
+        <div class="card shadow mt-4 animate-slide-up">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 text-white">OCR Extracted Text & Tools</h4>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="piiRedactSwitch" onchange="togglePIIRedaction()">
+                    <label class="form-check-label text-white small font-monospace" for="piiRedactSwitch">🔒 Redact PII</label>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div id="ocrTextContainer" class="form-control font-monospace p-3" style="background: rgba(0, 0, 0, 0.15) !important; min-height: 200px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; color: var(--text);">{{ extracted_text }}</div>
+                    <textarea id="ocrTextHidden" class="d-none">{{ extracted_text }}</textarea>
+                </div>
+                
+                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-secondary" id="copyOcrButton" onclick="copyOCRText(this)">
+                            Copy Text
+                        </button>
+                        <button class="btn btn-outline-info" id="downloadCsvButton" onclick="reconstructTableToCSV()">
+                            📊 Download CSV
+                        </button>
+                    </div>
+
+                    <!-- Translation Widget -->
+                    <div class="d-flex align-items-center gap-2">
+                        <select id="translationLang" class="form-select form-select-sm" style="width: auto;">
+                            <option value="es">Spanish (Español)</option>
+                            <option value="fr">French (Français)</option>
+                            <option value="de">German (Deutsch)</option>
+                            <option value="hi">Hindi (हिन्दी)</option>
+                            <option value="ja">Japanese (日本語)</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" id="translateBtn" onclick="translateAndSpeakText()">
+                            🗣 Translate & Speak
+                        </button>
+                    </div>
+                </div>
+
+                <div id="translationOutputBlock" class="mt-3 p-3 rounded" style="display: none; background: rgba(124, 58, 237, 0.08); border: 1px dashed rgba(124, 58, 237, 0.3);">
+                    <h6 class="text-white-50 font-monospace small mb-1">TRANSLATED TEXT</h6>
+                    <p id="translationOutputText" class="mb-0 text-white font-monospace"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Document Q&A Bot Card -->
+        <div class="card shadow mt-4 animate-slide-up">
+            <div class="card-header bg-dark text-white d-flex align-items-center gap-2">
+                <span class="fs-4">🤖</span>
+                <h4 class="mb-0 text-white">Document Assistant Bot</h4>
+            </div>
+            <div class="card-body">
+                <div id="chatWindow" class="p-3 mb-3 rounded" style="background: rgba(0, 0, 0, 0.2); height: 250px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="mb-2">
+                        <span class="badge bg-secondary p-2 mb-1">DocBot</span>
+                        <div class="p-2 rounded text-white small" style="background: rgba(255,255,255,0.04); display: inline-block; max-width: 85%;">
+                            Hello! I have scanned your document. You can ask me questions like *"What is the total value?"*, *"Is there any date?"*, *"Show me a summary"*, or ask about specific names!
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="chatInput" class="form-control" placeholder="Ask about this document..." onkeypress="handleChatKey(event)">
+                    <button class="btn btn-primary" onclick="submitChatQuery()">Ask Bot</button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if similar_images %}
+        <div class="card shadow mt-4 animate-slide-up">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">
+                    Similar Uploads from History
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% for img in similar_images %}
+                    <div class="col-md-4">
+                        <div class="va-glass-card p-3 rounded h-100 text-center d-flex flex-column justify-content-between" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.12);">
+                            <div>
+                                <div class="small text-white-50 mb-2 font-monospace">RECORD #{{ img.id }}</div>
+                                <div class="fw-bold mb-1 text-white fs-6">{{ img.prediction.replace('_', ' ').title() }}</div>
+                                <div class="small text-success mb-2 fw-semibold">Confidence: {{ img.confidence }}%</div>
+                            </div>
+                            <div class="small text-white-50 mt-2 font-monospace">{{ img.created_at|datetime }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if report_id %}
+        <div class="card shadow mt-4 animate-slide-up">
+            <div class="card-body text-center py-4">
+                <h4 class="text-success mb-3">
+                    Report Compiled Successfully
+                </h4>
+                <a
+                    href="{{ url_for('report.download_report', report_id=report_id) }}"
+                    class="btn btn-success btn-lg px-5 py-3 va-cta"
+                >
+                    Download PDF Report
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+const imageInput = document.getElementById("imageInput");
+const imagePreview = document.getElementById("imagePreview");
+const pdfPreview = document.getElementById("pdfPreview");
+const pdfName = document.getElementById("pdfName");
+
+if (imageInput) {
+    imageInput.addEventListener("change", function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const isPdf = file.name.toLowerCase().endsWith('.pdf');
+            if (isPdf) {
+                imagePreview.style.display = "none";
+                pdfPreview.style.display = "inline-block";
+                pdfName.textContent = file.name;
+                pdfPreview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                pdfPreview.style.display = "none";
+                imagePreview.src = URL.createObjectURL(file);
+                imagePreview.style.display = "block";
+                imagePreview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+    });
+}
+
+function copyOCRText(button) {
+    const textEl = document.getElementById("ocrTextHidden");
+    if (!textEl) return;
+    navigator.clipboard.writeText(textEl.value).then(function() {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.classList.replace('btn-secondary', 'btn-success');
+        setTimeout(function() {
+            button.textContent = originalText;
+            button.classList.replace('btn-success', 'btn-secondary');
+        }, 2000);
+    }, function(err) {
+        const originalText = button.textContent;
+        button.textContent = 'Copy Failed';
+        button.classList.replace('btn-secondary', 'btn-danger');
+        setTimeout(function() {
+            button.textContent = originalText;
+            button.classList.replace('btn-danger', 'btn-secondary');
+        }, 2000);
+    });
+}
+
+function togglePIIRedaction() {
+    const isRedact = document.getElementById("piiRedactSwitch").checked;
+    const originalText = document.getElementById("ocrTextHidden").value;
+    const container = document.getElementById("ocrTextContainer");
+    if (!container) return;
+
+    if (isRedact) {
+        let redacted = originalText.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED EMAIL]");
+        redacted = redacted.replace(/\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, "[REDACTED PHONE]");
+        redacted = redacted.replace(/\b(?:\d[ -]*?){13,16}\b/g, "[REDACTED CARD]");
+        container.textContent = redacted;
+    } else {
+        container.textContent = originalText;
+    }
+}
+
+function reconstructTableToCSV() {
+    const text = document.getElementById("ocrTextHidden").value;
+    const lines = text.split("\n");
+    let csvContent = "";
+
+    lines.forEach(function(line) {
+        const cleaned = line.trim().replace(/\s{2,}/g, ",");
+        if (cleaned) {
+            csvContent += cleaned + "\r\n";
+        }
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "scanned_table.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function translateAndSpeakText() {
+    const originalText = document.getElementById("ocrTextHidden") ? document.getElementById("ocrTextHidden").value : "";
+    const lang = document.getElementById("translationLang").value;
+    const outputBlock = document.getElementById("translationOutputBlock");
+    const outputText = document.getElementById("translationOutputText");
+    const translateBtn = document.getElementById("translateBtn");
+
+    if (!originalText.trim()) return;
+
+    const originalBtnText = translateBtn.textContent;
+    translateBtn.textContent = "Translating...";
+    translateBtn.disabled = true;
+
+    const pair = "en|" + lang;
+    fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalText.substring(0, 500))}&langpair=${pair}`)
+        .then(response => response.json())
+        .then(data => {
+            translateBtn.textContent = originalBtnText;
+            translateBtn.disabled = false;
+            
+            const translated = data.responseData.translatedText || "Translation failed.";
+            outputText.textContent = translated;
+            outputBlock.style.display = "block";
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(translated);
+            utterance.lang = lang;
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+        })
+        .catch(err => {
+            translateBtn.textContent = originalBtnText;
+            translateBtn.disabled = false;
+            outputText.textContent = "Translation service unavailable.";
+            outputBlock.style.display = "block";
+        });
+}
+
+function handleChatKey(event) {
+    if (event.key === "Enter") {
+        submitChatQuery();
+    }
+}
+
+function submitChatQuery() {
+    const inputEl = document.getElementById("chatInput");
+    const chatWindow = document.getElementById("chatWindow");
+    if (!inputEl || !chatWindow) return;
+
+    const query = inputEl.value.trim();
+    if (!query) return;
+
+    const userMsgDiv = document.createElement("div");
+    userMsgDiv.className = "mb-2 text-end";
+    userMsgDiv.innerHTML = `
+        <span class="badge bg-primary p-2 mb-1">You</span>
+        <div class="p-2 rounded text-white small" style="background: rgba(124, 58, 237, 0.2); display: inline-block; max-width: 85%; text-align: left;">
+            ${escapeHtml(query)}
+        </div>
+    `;
+    chatWindow.appendChild(userMsgDiv);
+    inputEl.value = "";
+
+    const ocrText = document.getElementById("ocrTextHidden").value;
+    let botReply = "";
+
+    const lowerQuery = query.toLowerCase();
+    if (lowerQuery.includes("summary") || lowerQuery.includes("summarize") || lowerQuery.includes("what is this")) {
+        const sentences = ocrText.split(/[.!\n]+/).map(s => s.trim()).filter(Boolean);
+        const topSentences = sentences.slice(0, 3).join(". ");
+        botReply = topSentences ? `Based on the scan, this document contains: "${topSentences}."` : "The document appears to be empty or unreadable.";
+    } else if (lowerQuery.includes("date") || lowerQuery.includes("when")) {
+        const dates = ocrText.match(/\b\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}\b/g) || ocrText.match(/\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2},? \d{4}\b/gi) || [];
+        botReply = dates.length > 0 ? `I found the following dates: <strong>${dates.join(", ")}</strong>` : "I couldn't identify any dates in this document.";
+    } else if (lowerQuery.includes("total") || lowerQuery.includes("amount") || lowerQuery.includes("price") || lowerQuery.includes("$")) {
+        const amounts = ocrText.match(/\$?\b\d+[\.,]\d{2}\b/g) || ocrText.match(/\b\d+ USD\b/gi) || [];
+        botReply = amounts.length > 0 ? `I detected these transaction amounts: <strong>${amounts.join(", ")}</strong>` : "No specific currency amounts were detected in the text.";
+    } else if (lowerQuery.includes("email") || lowerQuery.includes("contact")) {
+        const emails = ocrText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g) || [];
+        botReply = emails.length > 0 ? `Contact emails found: <strong>${emails.join(", ")}</strong>` : "No contact emails were detected.";
+    } else {
+        const lines = ocrText.split("\n");
+        const matchingLines = lines.filter(l => l.toLowerCase().includes(lowerQuery));
+        if (matchingLines.length > 0) {
+            botReply = `I found matches in the text:<br><ul>${matchingLines.slice(0, 3).map(l => `<li>${escapeHtml(l)}</li>`).join("")}</ul>`;
+        } else {
+            botReply = `I scanned the document but couldn't find matches for "${escapeHtml(query)}". Try asking for a "summary" or checking for "dates".`;
+        }
+    }
+
+    setTimeout(function() {
+        const botMsgDiv = document.createElement("div");
+        botMsgDiv.className = "mb-2";
+        botMsgDiv.innerHTML = `
+            <span class="badge bg-secondary p-2 mb-1">DocBot</span>
+            <div class="p-2 rounded text-white small" style="background: rgba(255, 255, 255, 0.04); display: inline-block; max-width: 85%;">
+                ${botReply}
+            </div>
+        `;
+        chatWindow.appendChild(botMsgDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }, 400);
+
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function escapeHtml(text) {
+    return text
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
+function speakCaption() {
+    const captionEl = document.getElementById('captionText');
+    if (!captionEl) return;
+
+    window.speechSynthesis.cancel();
+
+    // Remove quotes if present
+    let cleanText = captionEl.textContent.replace(/^"|"$/g, '');
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const englishVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || voices.find(v => v.lang.startsWith('en'));
+    if (englishVoice) {
+        utterance.voice = englishVoice;
+    }
+
+    window.speechSynthesis.speak(utterance);
+}
+
+const analysisForm = document.getElementById('analysisForm');
+if (analysisForm) {
+    analysisForm.addEventListener('submit', function() {
+        showLoading('analyzeButton');
+    });
+}
+
+if (pdfPreview && imageInput) {
+    pdfPreview.addEventListener("click", function() {
+        const file = imageInput.files[0];
+        if (file) {
+            const fileURL = URL.createObjectURL(file);
+            window.open(fileURL, '_blank');
+        }
+    });
+}
+
+function initOCRHighlightSync() {
+    const container = document.getElementById("ocrTextContainer");
+    if (!container) return;
+
+    const originalText = container.textContent;
+    const lines = originalText.split("\n");
+    container.innerHTML = "";
+    
+    lines.forEach((line, lineIdx) => {
+        const lineSpan = document.createElement("span");
+        lineSpan.className = "ocr-line";
+        lineSpan.style.display = "block";
+        lineSpan.style.cursor = "pointer";
+        lineSpan.style.transition = "background-color 0.2s ease";
+        lineSpan.dataset.lineIndex = lineIdx;
+
+        const words = line.split(" ");
+        words.forEach((word) => {
+            if (!word.trim()) return;
+            const wordSpan = document.createElement("span");
+            wordSpan.className = "ocr-word";
+            wordSpan.textContent = word + " ";
+            wordSpan.style.borderRadius = "2px";
+            wordSpan.style.transition = "background-color 0.15s ease";
+            
+            wordSpan.addEventListener("mouseenter", () => {
+                wordSpan.style.backgroundColor = "rgba(124, 58, 237, 0.4)";
+            });
+            wordSpan.addEventListener("mouseleave", () => {
+                wordSpan.style.backgroundColor = "";
+            });
+            wordSpan.addEventListener("click", () => {
+                if (wordSpan.style.border === "1px solid rgb(124, 58, 237)") {
+                    wordSpan.style.border = "";
+                    wordSpan.style.backgroundColor = "";
+                } else {
+                    wordSpan.style.border = "1px solid #7C3AED";
+                    wordSpan.style.backgroundColor = "rgba(124, 58, 237, 0.25)";
+                }
+            });
+
+            lineSpan.appendChild(wordSpan);
+        });
+        
+        container.appendChild(lineSpan);
+    });
+}
+initOCRHighlightSync();
+</script>
+
+{% endblock %}

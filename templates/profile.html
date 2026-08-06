@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}
+Profile | VisionAI Pro
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center profile-page">
+
+    <div class="col-lg-8">
+
+        <div class="card shadow border-0">
+
+            <div class="card-header bg-primary text-white">
+
+                <h4 class="mb-0">
+                    User Profile
+                </h4>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row mb-3">
+
+                    <div class="col-md-4 fw-bold">
+                        Username
+                    </div>
+
+                    <div class="col-md-8">
+                        {{ current_user.username }}
+                    </div>
+
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-4 fw-bold">
+                        Email
+                    </div>
+
+                    <div class="col-md-8">
+                        {{ current_user.email }}
+                    </div>
+
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-4 fw-bold">
+                        Role
+                    </div>
+
+                    <div class="col-md-8">
+                        {{ current_user.role }}
+                    </div>
+
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-4 fw-bold">
+                        Member Since
+                    </div>
+
+                    <div class="col-md-8">
+                        {{ current_user.created_at|datetime }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

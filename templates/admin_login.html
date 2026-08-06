@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}
+Admin Login | VisionAI Pro
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-6">
+
+        <div class="card auth-card shadow">
+
+            <div class="card-body p-4">
+
+                <h2 class="auth-title text-center mb-4">
+                    Admin Login
+                </h2>
+
+                <div class="text-center mb-4">
+                    <div class="small text-white-50">
+                        Use admin credentials to access user management.
+                    </div>
+                </div>
+
+                <form method="POST" autocomplete="off">
+
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+
+                        {{ form.email.label(class="form-label") }}
+
+                        {{ form.email(class="form-control", value="Admin123") }}
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        {{ form.password.label(class="form-label") }}
+
+                        {{ form.password(class="form-control") }}
+
+                    </div>
+
+                    <div class="d-grid">
+
+                        {{ form.submit(class="btn btn-primary") }}
+
+                    </div>
+
+                </form>
+
+                <hr>
+
+                <p class="text-center">
+                    Back to user login:
+                    <a href="{{ url_for('auth.login') }}">Login</a>
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+

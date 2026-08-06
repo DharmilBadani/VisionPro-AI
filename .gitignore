@@ -1,0 +1,34 @@
+# Python Compiler Files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest Cache
+.pytest_cache/
+
+# Databases
+instance/
+visionai.db
+
+# User Uploaded Temp Files
+static/uploads/*
+static/predictions/*
+static/reports/*
+
+# Keep folders but ignore contents
+!static/uploads/.gitkeep
+!static/predictions/.gitkeep
+!static/reports/.gitkeep
+
+# Environment variables & environments
+.env
+.venv
+env/
+venv/
+ENV/
+*.env
+
+# Large weight files (YOLO/MobileNet weights)
+*.pt
+*.h5
+*.pkl

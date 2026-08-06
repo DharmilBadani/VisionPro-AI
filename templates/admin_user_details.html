@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}
+Admin - User Details | VisionAI Pro
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">User Details</h2>
+    <a class="btn btn-outline-light" href="{{ url_for('admin.users') }}">&larr; Back</a>
+</div>
+
+<div class="row g-3">
+
+    <div class="col-lg-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Account</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-5 fw-bold">User ID</div>
+                    <div class="col-7">{{ user.id }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-5 fw-bold">Username</div>
+                    <div class="col-7">{{ user.username }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-5 fw-bold">Email</div>
+                    <div class="col-7">{{ user.email }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-5 fw-bold">Role</div>
+                    <div class="col-7">{{ user.role }}</div>
+                </div>
+                <div class="row mb-0">
+                    <div class="col-5 fw-bold">Member Since</div>
+                    <div class="col-7">{{ user.created_at|datetime }}</div>
+                </div>
+
+                <hr class="my-4" />
+
+                <h6 class="mb-2">Usage Summary</h6>
+                <div class="small">
+                    <div class="mb-2">Total Predictions: <b>{{ stats.total_predictions }}</b></div>
+                    <div class="mb-2">Total OCR Records: <b>{{ stats.total_ocr }}</b></div>
+                    <div class="mb-2">Total Detections: <b>{{ stats.total_detections }}</b></div>
+                    <div class="mb-0">Total Reports: <b>{{ stats.total_reports }}</b></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+
+        <div class="card shadow mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Top Predictions</h5>
+            </div>
+            <div class="card-body">
+                {% if top_predictions.labels and top_predictions.values %}
+                <div class="chart-container">
+                    <canvas id="userTopPredChart"></canvas>
+                </div>
+                {% else %}
+                <div class="text-white-50">No prediction usage yet.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Generated Reports</h5>
+            </div>
+            <div class="card-body">
+                {% if reports %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Report</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in reports %}
+                                    <tr>
+                                        <td>{{ r.id }}</td>
+                                        <td>{{ r.report_name }}</td>
+                                        <td>{{ r.created_at|datetime }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-white-50">No reports generated yet.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                {% if activity_feed %}
+                <ul class="list-group">
+                    {% for entry in activity_feed %}
+                    <li class="list-group-item">
+                        <strong>{{ entry.action }}</strong>
+                        <div class="small text-white-50">{{ entry.details or 'No details' }}</div>
+                        <div class="small text-white-50">{{ entry.created_at|datetime }}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-white-50">No activity recorded yet.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Recent Predictions</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_usage %}
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Prediction</th>
+                                <th>Confidence</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in recent_usage %}
+                                <tr>
+                                    <td>{{ p.id }}</td>
+                                    <td>{{ p.prediction }}</td>
+                                    <td>{{ p.confidence }}</td>
+                                    <td>{{ p.created_at|datetime }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <div class="text-white-50">No prediction activity yet.</div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% if top_predictions.labels and top_predictions.values %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    (function () {
+        const labels = {{ top_predictions["labels"]|default([])|tojson }};
+        const values = {{ top_predictions["values"]|default([])|tojson }};
+        const ctx = document.getElementById('userTopPredChart');
+
+        if (!ctx) return;
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Predictions',
+                    data: values,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    })();
+</script>
+
+{% endif %}
+
+
+{% endblock %}
+

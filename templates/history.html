@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}
+History
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Prediction History
+</h2>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form class="row g-2" method="GET">
+            <div class="col-md-3">
+                <input class="form-control" type="text" name="search_text" placeholder="Search label" value="{{ filters.search_text }}">
+            </div>
+            <div class="col-md-3">
+                <input class="form-control" type="text" name="prediction_type" placeholder="Prediction type" value="{{ filters.prediction_type }}">
+            </div>
+            <div class="col-md-3">
+                <input class="form-control" type="number" step="0.1" name="min_confidence" placeholder="Min confidence" value="{{ filters.min_confidence }}">
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Filter</button>
+                <a class="btn btn-outline-light" href="{{ url_for('dashboard.export_history') }}">Export CSV</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+
+    <div class="card-body">
+
+        <!-- Folder Tabs -->
+        <ul class="nav nav-pills mb-4 gap-2" id="folderTabs">
+            <li class="nav-item">
+                <button class="nav-link active btn" onclick="filterFolder('all', event)">📁 All Files</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link btn" onclick="filterFolder('document', event)">📄 Documents (PDFs)</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link btn" onclick="filterFolder('object', event)">🎯 Object Detections</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link btn" onclick="filterFolder('other', event)">🖼 Classifications</button>
+            </li>
+        </ul>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered">
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Prediction</th>
+                        <th>Model Used</th>
+                        <th>Confidence</th>
+                        <th>Date</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="historyTableBody">
+
+                    {% for item in history %}
+
+                    {% set category = 'other' %}
+                    {% if item.prediction == 'pdf_document' %}
+                        {% set category = 'document' %}
+                    {% elif item.model_used == 'YOLOv8' %}
+                        {% set category = 'object' %}
+                    {% endif %}
+
+                    <tr data-category="{{ category }}">
+
+                        <td>
+                            {{ item.id }}
+                        </td>
+
+                        <td>
+                            {{ item.prediction.replace('_', ' ').title() }}
+                        </td>
+
+                        <td>
+                            <span class="badge bg-secondary">{{ item.model_used }}</span>
+                        </td>
+
+                        <td>
+                            {{ item.confidence }}%
+                        </td>
+
+                        <td>
+                            {{ item.created_at|datetime }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function filterFolder(category, event) {
+    // Update active tab styling
+    const buttons = document.querySelectorAll('#folderTabs button');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
+
+    // Filter rows
+    const rows = document.querySelectorAll('#historyTableBody tr');
+    rows.forEach(row => {
+        if (category === 'all') {
+            row.style.display = '';
+        } else {
+            const rowCat = row.getAttribute('data-category');
+            if (rowCat === category) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

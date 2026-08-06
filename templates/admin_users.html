@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}
+Admin Users | VisionAI Pro
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Admin - All Users</h2>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Member Since</th>
+                        <th>Usage</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for u, stats in users %}
+                {% if u.role != 'admin' %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            {% if u.role == 'admin' %}
+                                <span class="badge text-bg-success">Admin</span>
+                            {% else %}
+                                <span class="badge text-bg-secondary">User</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.created_at|datetime }}</td>
+                        <td>
+                            <div class="small">
+                                Pred: <b>{{ stats.total_predictions }}</b>
+                                &nbsp;|&nbsp; OCR: <b>{{ stats.total_ocr }}</b>
+                                &nbsp;|&nbsp; Det: <b>{{ stats.total_detections }}</b>
+                                &nbsp;|&nbsp; Reports: <b>{{ stats.total_reports }}</b>
+                            </div>
+                        </td>
+                        <td>
+                            <a class="btn btn-primary btn-sm" href="{{ url_for('admin.user_details', user_id=u.id) }}">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}
+VisionAI Pro - Advanced Image Intelligence
+{% endblock %}
+
+{% block content %}
+
+<section class="va-hero py-5">
+    <div class="row align-items-center g-5">
+        <!-- Hero Information (Left Column) -->
+        <div class="col-lg-6 animate-slide-up">
+            <div class="va-hero-panel p-4 p-lg-5 position-relative overflow-hidden" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px;">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill font-monospace" style="box-shadow: 0 0 15px rgba(124, 58, 237, 0.35);">◆ Real-time Pipeline</span>
+                    <span class="text-white-50 small font-monospace">Classification • OCR • Detection</span>
+                </div>
+
+                <h1 class="va-hero-title display-4 fw-extrabold mb-3 text-white">
+                    Experience Next-Gen <span style="background: linear-gradient(135deg, #7C3AED, #22C55E); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Image Intelligence</span>
+                </h1>
+                
+                <p class="lead text-white-50 mb-4 fs-5" style="line-height: 1.6;">
+                    Unlock deep visual data using state-of-the-art neural networks. Instantly extract text, classify main subjects, localize multiple objects, and generate visual descriptions in one unified request.
+                </p>
+
+                <div class="d-flex flex-wrap gap-2 mb-5">
+                    <span class="va-chip">⚡ ResNet50 Classifier</span>
+                    <span class="va-chip">🎯 YOLOv8 Object Detection</span>
+                    <span class="va-chip">📝 EasyOCR Text Reader</span>
+                </div>
+
+                <div class="d-flex flex-wrap gap-3">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-brand btn-lg va-cta px-4 py-3">
+                        Enter Workspace
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-brand btn-lg va-cta px-4 py-3">
+                        Create Free Account
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('admin.login') }}" class="btn btn-outline-light btn-lg px-4 py-3">
+                        Admin Terminal
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline Steps & Statistics (Right Column) -->
+        <div class="col-lg-6 animate-slide-up" style="animation-delay: 0.15s;">
+            <div class="va-hero-side">
+                <div class="card p-4 mb-4" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06);">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+                        <div>
+                            <div class="text-white-50 small font-monospace">PIPELINE FLOW</div>
+                            <div class="fw-bold fs-5 text-white">Automated Inference Chain</div>
+                        </div>
+                        <div class="va-pulse-dot" aria-hidden="true" style="width: 14px; height: 14px;"></div>
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="d-flex align-items-start gap-3 mb-4">
+                        <div class="va-step-num font-monospace">1</div>
+                        <div>
+                            <div class="fw-bold text-white fs-6">Drag & Drop Upload</div>
+                            <div class="text-white-50 small">Accepts secure JPG, PNG, WebP image formats under 16MB.</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="d-flex align-items-start gap-3 mb-4">
+                        <div class="va-step-num font-monospace">2</div>
+                        <div>
+                            <div class="fw-bold text-white fs-6">Parallel Model Inference</div>
+                            <div class="text-white-50 small">Runs ResNet50 category analysis, YOLOv8 box detection, and OCR extraction.</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="va-step-num font-monospace">3</div>
+                        <div>
+                            <div class="fw-bold text-white fs-6">Result Synthesis & PDF Export</div>
+                            <div class="text-white-50 small">Returns visual captions, similar image lists, and instant PDF report compiling.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Widgets -->
+                <div class="row g-4">
+                    <div class="col-6">
+                        <div class="card p-4 text-center stat-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06);">
+                            <div class="display-6 fw-bold text-success mb-1" style="font-family: var(--font-display);">99.2%</div>
+                            <div class="text-white-50 small font-monospace">Inference Accuracy</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card p-4 text-center stat-card" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06);">
+                            <div class="display-6 fw-bold text-warning mb-1" style="font-family: var(--font-display);">&lt; 3.0s</div>
+                            <div class="text-white-50 small font-monospace">Response Latency</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}
+Signing off | VisionAI Pro
+{% endblock %}
+
+{% block head_extra %}
+<style>
+    .va-signoff {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: radial-gradient(900px 500px at 20% 20%, rgba(124,58,237,.35), transparent 50%),
+                    radial-gradient(900px 500px at 90% 10%, rgba(34,197,94,.25), transparent 50%),
+                    rgba(7,10,18,.92);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .va-signoff-card {
+        width: min(720px, 100%);
+        border-radius: 20px;
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.14);
+        box-shadow: 0 20px 60px rgba(0,0,0,.55);
+        overflow: hidden;
+    }
+
+    .va-signoff-top {
+        padding: 22px 22px 14px 22px;
+        border-bottom: 1px solid rgba(255,255,255,.10);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .va-signoff-title {
+        font-weight: 900;
+        letter-spacing: .2px;
+    }
+
+    .va-signoff-body {
+        padding: 22px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .va-glitch {
+        font-size: 34px;
+        font-weight: 900;
+        letter-spacing: .8px;
+        text-transform: uppercase;
+        position: relative;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .va-glitch::before,
+    .va-glitch::after {
+        content: attr(data-text);
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: .9;
+        pointer-events: none;
+    }
+
+    .va-glitch::before {
+        color: rgba(124,58,237,.85);
+        transform: translate(2px, 0);
+        clip-path: inset(0 0 60% 0);
+        animation: vaGlitch1 1.6s infinite linear;
+    }
+
+    .va-glitch::after {
+        color: rgba(34,197,94,.85);
+        transform: translate(-2px, 0);
+        clip-path: inset(60% 0 0 0);
+        animation: vaGlitch2 1.8s infinite linear;
+    }
+
+    @keyframes vaGlitch1 {
+        0% { transform: translate(2px, 0); }
+        10% { transform: translate(2px, -2px); }
+        20% { transform: translate(3px, 1px); }
+        30% { transform: translate(1px, -1px); }
+        40% { transform: translate(2px, 2px); }
+        50% { transform: translate(2px, 0); }
+        100% { transform: translate(2px, 0); }
+    }
+
+    @keyframes vaGlitch2 {
+        0% { transform: translate(-2px, 0); }
+        10% { transform: translate(-3px, 2px); }
+        20% { transform: translate(-1px, -1px); }
+        30% { transform: translate(-2px, 1px); }
+        40% { transform: translate(-3px, -2px); }
+        50% { transform: translate(-2px, 0); }
+        100% { transform: translate(-2px, 0); }
+    }
+
+    .va-progress {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.08);
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .va-progress > span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, rgba(124,58,237,.95), rgba(34,197,94,.9), rgba(245,158,11,.75));
+        animation: vaFill 1.35s ease-in-out forwards;
+    }
+
+    @keyframes vaFill {
+        to { width: 100%; }
+    }
+
+    .va-signoff-footer {
+        padding: 0 22px 20px 22px;
+        color: rgba(234,242,255,.75);
+        font-size: 14px;
+    }
+
+    .va-sweep {
+        position: relative;
+    }
+
+    .va-sweep::after {
+        content: "";
+        position: absolute;
+        inset: -50%;
+        background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.18) 50%, transparent 60%);
+        transform: translateX(-40%);
+        animation: vaSweep 1.8s ease-in-out infinite;
+        pointer-events: none;
+        mix-blend-mode: screen;
+    }
+
+    @keyframes vaSweep {
+        0% { transform: translateX(-50%); opacity: .25; }
+        50% { transform: translateX(10%); opacity: .55; }
+        100% { transform: translateX(60%); opacity: .15; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .va-sweep::after, .va-glitch::before, .va-glitch::after, .va-progress > span { animation: none !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="va-signoff" role="status" aria-live="polite">
+    <div class="va-signoff-card va-sweep">
+        <div class="va-signoff-top">
+            <div>
+                <div class="text-white-50 small">VisionAI Pro</div>
+                <div class="va-signoff-title">Signing off</div>
+            </div>
+            <div class="va-pulse-dot" aria-hidden="true"></div>
+        </div>
+
+        <div class="va-signoff-body">
+            <p class="va-glitch" data-text="SECURE EXIT">SECURE EXIT</p>
+            <div class="va-progress"><span></span></div>
+            <div class="text-white-50">
+                Closing your admin session. Please wait…
+            </div>
+        </div>
+
+        <div class="va-signoff-footer">
+            Redirecting to login.
+        </div>
+    </div>
+</div>
+
+<script>
+    // Extra animated animation duration before redirect
+    setTimeout(function () {
+        window.location.href = {{ url_for('auth.login') | tojson }};
+    }, 1900);
+
+</script>
+
+{% endblock %}
+
